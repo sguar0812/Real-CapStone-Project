@@ -25,7 +25,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: M_WoodenBox 09
   m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
-  m_Parent: {fileID: 2100000, guid: bee823fa95a447f4ea9e54dd89700176, type: 2}
+  m_Parent: {fileID: 2100000, guid: 9b5754f7ebc15dc408f5b17d3559f259, type: 2}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ENVIRONMENTREFLECTIONS_OFF
