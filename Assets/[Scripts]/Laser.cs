@@ -52,7 +52,6 @@ public class Laser : MonoBehaviour
     {
         if (DartPrefab == null)
         {
-            Debug.Log("The dart is empty");
             return;
         }
 
