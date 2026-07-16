@@ -8,6 +8,7 @@ TagManager:
   - Hand
   - Dart
   - DartSpawn
+  - Alien
   layers:
   - Default
   - TransparentFX
