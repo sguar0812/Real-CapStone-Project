@@ -43,8 +43,19 @@ public class Laser : MonoBehaviour
 
         return Dart;
     }
+ private AudioSource audioSource;
 
 
+
+
+
+
+
+
+   private void Awake()
+   {
+       audioSource = GetComponent<AudioSource>();
+   }
 
 /* // Made SpawnLocation a SerializedField at the top, so just need to drag and drop in Unity
     private void Start()
@@ -81,6 +92,8 @@ public class Laser : MonoBehaviour
 
         lastShot = Time.time + DartDelay;
 
+        ShootDartSound();
+
 
         //var bulletPrefab = Instantiate(DartPrefab, DartSpawnPosition.position, DartSpawnPosition.rotation);
 
@@ -91,6 +104,13 @@ public class Laser : MonoBehaviour
         bulletRB.AddForce(direction * DartSpeed);
         Destroy(bulletPrefab, 5f);
     }
- #endregion
+
+    private void ShootDartSound()
+    {
+        var random = Random.Range(0.8f, 1.2f);
+        audioSource.pitch = random;
+        audioSource.Play();
+    }
+    #endregion
 
 }
