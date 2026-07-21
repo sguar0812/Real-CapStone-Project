@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class Laser : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class Laser : MonoBehaviour
 
     [Tooltip("Optional VR fire action. Leave empty if you don't use Input System actions.")]
     [SerializeField] private UnityEngine.InputSystem.InputActionReference fireAction;
+
+    private XRBaseInteractable xrInteractable;
 
     //private Transform SpawnLocation;
 
@@ -18,11 +21,19 @@ public class Laser : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space)
-            || CheckControllerTrigger(leftDevice, ref leftTriggerPressed)
-            || CheckControllerTrigger(rightDevice, ref rightTriggerPressed))
+            || (IsHeldByInteractor() && (CheckControllerTrigger(leftDevice, ref leftTriggerPressed)
+            || CheckControllerTrigger(rightDevice, ref rightTriggerPressed))))
         {
             ShootDart();
         }
+    }
+
+    private bool IsHeldByInteractor()
+    {
+        if (xrInteractable == null)
+            return false;
+
+        return xrInteractable.isSelected;
     }
 
     private bool leftTriggerPressed;
@@ -86,10 +97,11 @@ public class Laser : MonoBehaviour
 
 
 
-   private void Awake()
-   {
-       audioSource = GetComponent<AudioSource>();
-   }
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        xrInteractable = GetComponent<XRBaseInteractable>();
+    }
 
     private void OnEnable()
     {
@@ -135,7 +147,10 @@ public class Laser : MonoBehaviour
 
     private void OnFire(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
-        ShootDart();
+        if (IsHeldByInteractor())
+        {
+            ShootDart();
+        }
     }
 
     private void OnDeviceConnected(InputDevice device)
