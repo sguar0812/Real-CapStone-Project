@@ -4,10 +4,28 @@ public class Laser : MonoBehaviour
 {
     public GameObject DartPrefab;
 
-    private Transform SpawnLocation;
+    //private Transform SpawnLocation;
+
+     [SerializeField] private Transform SpawnLocation;
+
+
+/* Code to test gun from laptop
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            ShootDart();
+        }
+    }
+*/
+
+
 
     private GameObject SpawnDart()
     {
+
+        Debug.Log($"Spawning from {SpawnLocation.position}");
+
         #region ...
         //check if prefab is null
         if (DartPrefab == null)
@@ -29,16 +47,21 @@ public class Laser : MonoBehaviour
 
     private AudioSource audioSource;
 
+
+
+
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
     }
 
+/* // Made SpawnLocation a SerializedField at the top, so just need to drag and drop in Unity
     private void Start()
     {
         SpawnLocation = GameObject.FindGameObjectWithTag("DartSpawn").transform;
 
     }
+*/
 
     private float lastShot;
 
@@ -50,6 +73,9 @@ public class Laser : MonoBehaviour
 
     public void ShootDart()
     {
+        // To know which gun shot
+        Debug.Log($"{name} fired");
+
         if (DartPrefab == null)
         {
             return;
