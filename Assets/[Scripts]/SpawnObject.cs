@@ -12,7 +12,8 @@ public class SpawnObject : MonoBehaviour
     public Transform spawnPosition = null;
 
     public void Spawn()
-    {
+    {   
+         Debug.Log("Game started successfully!");
         Instantiate(originalObject, spawnPosition.position, spawnPosition.rotation);
     }
 
@@ -20,5 +21,10 @@ public class SpawnObject : MonoBehaviour
     {
         if (!spawnPosition)
             spawnPosition = transform;
+    }
+    public void Awake()
+    {
+
+        Spawn();
     }
 }
