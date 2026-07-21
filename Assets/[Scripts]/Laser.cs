@@ -81,7 +81,6 @@ public class Laser : MonoBehaviour
 
         lastShot = Time.time + DartDelay;
 
-        ShootDartSound();
 
         //var bulletPrefab = Instantiate(DartPrefab, DartSpawnPosition.position, DartSpawnPosition.rotation);
 
