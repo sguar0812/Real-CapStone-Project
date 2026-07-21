@@ -1,11 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 public class Laser : MonoBehaviour
 {
     public GameObject DartPrefab;
 
-    [SerializeField] private InputActionReference fireAction;
+    [Tooltip("Optional VR fire action. Leave empty if you don't use Input System actions.")]
+    [SerializeField] private UnityEngine.InputSystem.InputActionReference fireAction;
 
     //private Transform SpawnLocation;
 
@@ -15,13 +17,37 @@ public class Laser : MonoBehaviour
     // Code to test gun from laptop
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space)
+            || CheckControllerTrigger(leftDevice, ref leftTriggerPressed)
+            || CheckControllerTrigger(rightDevice, ref rightTriggerPressed))
         {
             ShootDart();
         }
     }
 
+    private bool leftTriggerPressed;
+    private bool rightTriggerPressed;
+    private InputDevice leftDevice;
+    private InputDevice rightDevice;
 
+    private bool CheckControllerTrigger(InputDevice device, ref bool wasPressed)
+    {
+        if (!device.isValid)
+            return false;
+
+        if (device.TryGetFeatureValue(CommonUsages.triggerButton, out bool isPressed))
+        {
+            if (isPressed && !wasPressed)
+            {
+                wasPressed = true;
+                return true;
+            }
+
+            wasPressed = isPressed;
+        }
+
+        return false;
+    }
 
     private GameObject SpawnDart()
     {
@@ -67,6 +93,10 @@ public class Laser : MonoBehaviour
 
     private void OnEnable()
     {
+        InitializeDevices();
+        InputDevices.deviceConnected += OnDeviceConnected;
+        InputDevices.deviceDisconnected += OnDeviceDisconnected;
+
         if (fireAction != null && fireAction.action != null)
         {
             fireAction.action.performed += OnFire;
@@ -76,6 +106,9 @@ public class Laser : MonoBehaviour
 
     private void OnDisable()
     {
+        InputDevices.deviceConnected -= OnDeviceConnected;
+        InputDevices.deviceDisconnected -= OnDeviceDisconnected;
+
         if (fireAction != null && fireAction.action != null)
         {
             fireAction.action.performed -= OnFire;
@@ -100,9 +133,34 @@ public class Laser : MonoBehaviour
         }
     }
 
-    private void OnFire(InputAction.CallbackContext context)
+    private void OnFire(UnityEngine.InputSystem.InputAction.CallbackContext context)
     {
         ShootDart();
+    }
+
+    private void OnDeviceConnected(InputDevice device)
+    {
+        InitializeDevices();
+    }
+
+    private void OnDeviceDisconnected(InputDevice device)
+    {
+        InitializeDevices();
+    }
+
+    private void InitializeDevices()
+    {
+        var leftDevices = new List<InputDevice>();
+        var rightDevices = new List<InputDevice>();
+
+        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Left | InputDeviceCharacteristics.Controller, leftDevices);
+        InputDevices.GetDevicesWithCharacteristics(InputDeviceCharacteristics.Right | InputDeviceCharacteristics.Controller, rightDevices);
+
+        if (leftDevices.Count > 0)
+            leftDevice = leftDevices[0];
+
+        if (rightDevices.Count > 0)
+            rightDevice = rightDevices[0];
     }
 
     private float lastShot;
