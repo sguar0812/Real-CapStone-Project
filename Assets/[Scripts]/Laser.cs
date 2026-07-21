@@ -6,7 +6,7 @@ public class Laser : MonoBehaviour
 
     //private Transform SpawnLocation;
 
-     [SerializeField] private Transform SpawnLocation;
+    [SerializeField] private Transform SpawnLocation;
 
 
 /*Code to test gun from laptop
