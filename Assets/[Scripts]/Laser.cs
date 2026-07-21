@@ -9,7 +9,7 @@ public class Laser : MonoBehaviour
      [SerializeField] private Transform SpawnLocation;
 
 
-/* Code to test gun from laptop
+/*Code to test gun from laptop
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
