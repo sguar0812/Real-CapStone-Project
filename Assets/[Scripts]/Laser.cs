@@ -91,7 +91,7 @@ public class Laser : MonoBehaviour
         var direction = bulletPrefab.transform.TransformDirection(Vector3.forward);
         bulletRB.AddForce(direction * DartSpeed);
         Destroy(bulletPrefab, 5f);
-
+    }
  #endregion
 
 }
