@@ -9,7 +9,7 @@ public class Laser : MonoBehaviour
     [SerializeField] private Transform SpawnLocation;
 
 
-/*Code to test gun from laptop
+    // Code to test gun from laptop
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -17,12 +17,17 @@ public class Laser : MonoBehaviour
             ShootDart();
         }
     }
-*/
 
 
 
     private GameObject SpawnDart()
     {
+
+        if (SpawnLocation == null)
+        {
+            Debug.LogError($"{name}: SpawnLocation is not assigned. Cannot spawn dart.");
+            return null;
+        }
 
         Debug.Log($"Spawning from {SpawnLocation.position}");
 
@@ -30,7 +35,7 @@ public class Laser : MonoBehaviour
         //check if prefab is null
         if (DartPrefab == null)
         {
-            Debug.Log("empty...");
+            Debug.LogError($"{name}: DartPrefab is not assigned. Cannot spawn dart.");
             return null;
         }
         #endregion
@@ -57,13 +62,22 @@ public class Laser : MonoBehaviour
        audioSource = GetComponent<AudioSource>();
    }
 
-/* // Made SpawnLocation a SerializedField at the top, so just need to drag and drop in Unity
     private void Start()
     {
-        SpawnLocation = GameObject.FindGameObjectWithTag("DartSpawn").transform;
+        if (SpawnLocation == null)
+        {
+            var spawnObject = GameObject.FindGameObjectWithTag("DartSpawn");
+            if (spawnObject != null)
+            {
+                SpawnLocation = spawnObject.transform;
+            }
+        }
 
+        if (audioSource == null)
+        {
+            Debug.LogWarning($"{name}: AudioSource not found on this GameObject. Gun fire sound will not play.");
+        }
     }
-*/
 
     private float lastShot;
 
@@ -89,17 +103,28 @@ public class Laser : MonoBehaviour
         }
 
         GameObject NerfDartPrefab = SpawnDart();
+        if (NerfDartPrefab == null)
+        {
+            return;
+        }
 
         lastShot = Time.time + DartDelay;
 
         ShootDartSound();
 
-
-        //var bulletPrefab = Instantiate(DartPrefab, DartSpawnPosition.position, DartSpawnPosition.rotation);
-
         var bulletPrefab = NerfDartPrefab;
+        if (bulletPrefab == null)
+        {
+            return;
+        }
 
         var bulletRB = bulletPrefab.GetComponent<Rigidbody>();
+        if (bulletRB == null)
+        {
+            Debug.LogError($"{name}: Spawned dart prefab does not contain a Rigidbody.");
+            return;
+        }
+
         var direction = bulletPrefab.transform.TransformDirection(Vector3.forward);
         bulletRB.AddForce(direction * DartSpeed);
         Destroy(bulletPrefab, 5f);
@@ -107,6 +132,11 @@ public class Laser : MonoBehaviour
 
     private void ShootDartSound()
     {
+        if (audioSource == null)
+        {
+            return;
+        }
+
         var random = Random.Range(0.8f, 1.2f);
         audioSource.pitch = random;
         audioSource.Play();
