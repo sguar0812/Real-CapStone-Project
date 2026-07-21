@@ -1,8 +1,11 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Laser : MonoBehaviour
 {
     public GameObject DartPrefab;
+
+    [SerializeField] private InputActionReference fireAction;
 
     //private Transform SpawnLocation;
 
@@ -62,6 +65,24 @@ public class Laser : MonoBehaviour
        audioSource = GetComponent<AudioSource>();
    }
 
+    private void OnEnable()
+    {
+        if (fireAction != null && fireAction.action != null)
+        {
+            fireAction.action.performed += OnFire;
+            fireAction.action.Enable();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (fireAction != null && fireAction.action != null)
+        {
+            fireAction.action.performed -= OnFire;
+            fireAction.action.Disable();
+        }
+    }
+
     private void Start()
     {
         if (SpawnLocation == null)
@@ -77,6 +98,11 @@ public class Laser : MonoBehaviour
         {
             Debug.LogWarning($"{name}: AudioSource not found on this GameObject. Gun fire sound will not play.");
         }
+    }
+
+    private void OnFire(InputAction.CallbackContext context)
+    {
+        ShootDart();
     }
 
     private float lastShot;
