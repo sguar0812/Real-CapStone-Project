@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 395182694906197619}
   - component: {fileID: 5251161403207688258}
   - component: {fileID: 1317246946656985570}
+  - component: {fileID: 5331935711960621951}
   m_Layer: 0
   m_Name: SingleLine-LightSaber
   m_TagString: Dart
@@ -127,7 +128,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
@@ -153,3 +154,15 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 110.0665, y: 118.89693, z: 1.4225006}
   m_Center: {x: -12.219395, y: 46.92715, z: 0.053977966}
+--- !u!114 &5331935711960621951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5888958823964326611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aaf539db806524fffb782f92fa89ed95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
