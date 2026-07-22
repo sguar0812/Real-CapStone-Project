@@ -4577,6 +4577,57 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1476989664}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &781535997
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 781535999}
+  - component: {fileID: 781535998}
+  m_Layer: 0
+  m_Name: TMP Timer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &781535998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 781535997}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4472abd346fc4e76be33e0a1b6b8d02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoStart: 1
+  createWorldSpaceCanvas: 1
+  smartOffset: {x: 0, y: 1, z: 0}
+  countdownSeconds: 60
+  countdownMode: 1
+  endSound: {fileID: 8300000, guid: 1c807b6ba8fb9544d9c02bf47d9ce979, type: 3}
+  showTimerOnStart: 1
+--- !u!4 &781535999
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 781535997}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: -4.883, y: 2.9, z: -30.09}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &787964455 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1827629865255638474, guid: 2b95b8c937251bf4a862469a23da16b2,
@@ -12651,6 +12702,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 4988486661656157991}
   - {fileID: 4504576995820225109}
+  - {fileID: 781535999}
   - {fileID: 7043853987381725280}
   - {fileID: 3706167054356302965}
   - {fileID: 562329023}
