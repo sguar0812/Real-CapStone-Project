@@ -34,37 +34,47 @@ public class GameAndLevelManager : MonoBehaviour
     }
 
     void Start()
+{
+    // 1. Set up the Level Pad (Hide it at start)
+    if (levelPad != null)
     {
-        // 1. Set up the Level Pad (Hide it at start)
-        if (levelPad != null)
-        {
-            padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
-            padCollider = levelPad.GetComponent<Collider>();
-            if (padMeshRenderer != null) padMeshRenderer.enabled = false;
-            if (padCollider != null) padCollider.enabled = false;
-        }
-
-        // --- TRULY RANDOMIZE THE ALIEN ORDER ---
-        for (int i = 0; i < alienPool.Count; i++)
-        {
-            GameObject temp = alienPool[i];
-            int randomIndex = Random.Range(i, alienPool.Count);
-            alienPool[i] = alienPool[randomIndex];
-            alienPool[randomIndex] = temp;
-        }
-
-        // 2. Hide ALL aliens in the scene at the absolute start
-        foreach (GameObject alien in alienPool)
-        {
-            if (alien != null)
-            {
-                SetAlienVisibility(alien, false);
-            }
-        }
-
-        // 3. Reveal the very first alien to start the game
-        RevealNextAlien();
+        padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
+        padCollider = levelPad.GetComponent<Collider>();
+        if (padMeshRenderer != null) padMeshRenderer.enabled = false;
+        if (padCollider != null) padCollider.enabled = false;
     }
+
+    // NEW FIX: Run the initialization safely through a Coroutine to prevent race conditions
+    StartCoroutine(SafeInitializeGame());
+}
+
+private IEnumerator SafeInitializeGame()
+{
+    // Wait exactly one frame for all VR systems and alien Awake() functions to complete
+    yield return null; 
+
+    // --- TRULY RANDOMIZE THE ALIEN ORDER ---
+    for (int i = 0; i < alienPool.Count; i++)
+    {
+        GameObject temp = alienPool[i];
+        int randomIndex = Random.Range(i, alienPool.Count);
+        alienPool[i] = alienPool[randomIndex];
+        alienPool[randomIndex] = temp;
+    }
+
+    // 2. Hide ALL aliens in the scene safely now that they are awake
+    foreach (GameObject alien in alienPool)
+    {
+        if (alien != null)
+        {
+            SetAlienVisibility(alien, false);
+        }
+    }
+
+    // 3. Reveal the very first alien to start the game
+    RevealNextAlien();
+}
+
 
     // NEW & CRITICAL FIX: The Laser script calls this function directly when it kills an alien.
     // This removes the need to constantly check "if (currentActiveAlien == null)" in Update.
