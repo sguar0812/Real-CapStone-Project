@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // Required for loading scenes via the pad
+using UnityEngine.SceneManagement; 
 using TMPro; 
 
 public class GameAndLevelManager : MonoBehaviour
@@ -51,7 +51,7 @@ public class GameAndLevelManager : MonoBehaviour
 
     void Start()
     {
-        // RESTORED: Hide the Level Pad at the absolute start
+        // Hide the Level Pad at the absolute start
         if (levelPad != null)
         {
             padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
@@ -83,8 +83,10 @@ public class GameAndLevelManager : MonoBehaviour
 
     private IEnumerator SafeInitializeGame()
     {
+        // Wait exactly one frame for all VR systems to load securely
         yield return null; 
 
+        // Truly randomize the alien order in the list
         for (int i = 0; i < alienPool.Count; i++)
         {
             GameObject temp = alienPool[i];
@@ -93,11 +95,13 @@ public class GameAndLevelManager : MonoBehaviour
             alienPool[randomIndex] = temp;
         }
 
+        // FIX: Turn OFF every single alien completely so they cannot glitch out or move in the dark
         foreach (GameObject alien in alienPool)
         {
-            if (alien != null) SetAlienVisibility(alien, false);
+            if (alien != null) alien.SetActive(false);
         }
 
+        // Turn on and reveal the very first alien to start the game
         RevealNextAlien();
     }
 
@@ -137,8 +141,6 @@ public class GameAndLevelManager : MonoBehaviour
             {
                 statusText.text = "YOU WIN!";
                 statusText.color = Color.green;
-                
-                // RESTORED: Trigger the teleport pad to appear since they won!
                 StartCoroutine(RevealLevelPad());
             }
             else
@@ -149,38 +151,6 @@ public class GameAndLevelManager : MonoBehaviour
         }
     }
 
-    // RESTORED: Delays and reveals the physical portal pad
-    private IEnumerator RevealLevelPad()
-    {
-        padHasAppeared = true;
-        yield return new WaitForSeconds(delayBeforePadAppears);
-        
-        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
-        if (padCollider != null) padCollider.enabled = true;
-        Debug.Log("Victory! The Level Pad is now visible and active!");
-    }
-
-    // RESTORED: Detects when the VR player steps onto the teleport pad
-    private void OnTriggerEnter(Collider other)
-    {
-        if (padHasAppeared && !isLevelTransitioning && other.CompareTag(padTag))
-        {
-            StartCoroutine(LoadNextLevel());
-        }
-    }
-
-    // RESTORED: Transitions to the next build scene
-    private IEnumerator LoadNextLevel()
-    {
-        isLevelTransitioning = true;
-        yield return new WaitForSeconds(0.5f);
-        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
-        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
-        {
-            SceneManager.LoadScene(nextSceneIndex);
-        }
-    }
-
     private void RevealNextAlien()
     {
         if (currentAlienIndex < alienPool.Count)
@@ -188,7 +158,9 @@ public class GameAndLevelManager : MonoBehaviour
             currentActiveAlien = alienPool[currentAlienIndex];
             if (currentActiveAlien != null)
             {
-                SetAlienVisibility(currentActiveAlien, true);
+                // FIX: Turn the game object fully ON so it appears and its scripts start running safely
+                currentActiveAlien.SetActive(true);
+                Debug.Log($"Alien {currentAlienIndex + 1} of {alienPool.Count} is active!");
             }
         }
     }
@@ -202,12 +174,22 @@ public class GameAndLevelManager : MonoBehaviour
         RevealNextAlien();
     }
 
-    private void SetAlienVisibility(GameObject alien, bool visible)
+    private void OnTriggerEnter(Collider other)
     {
-        Renderer r = alien.GetComponent<Renderer>();
-        if (r != null) r.enabled = visible;
+        if (padHasAppeared && !isLevelTransitioning && other.CompareTag(padTag))
+        {
+            StartCoroutine(LoadNextLevel());
+        }
+    }
 
-        Renderer[] childRenderers = alien.GetComponentsInChildren<Renderer>();
-        foreach (Renderer cr in childRenderers) cr.enabled = visible;
+    private IEnumerator LoadNextLevel()
+    {
+        isLevelTransitioning = true;
+        yield return new WaitForSeconds(0.5f);
+        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextSceneIndex);
+        }
     }
 }
