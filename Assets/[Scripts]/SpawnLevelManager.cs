@@ -2,43 +2,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement; 
-using TMPro; 
 
-// The name here matches your new file name exactly with NO special characters
 public class SpawnLevelManager : MonoBehaviour
 {
     public static SpawnLevelManager Instance;
 
     [Header("Scene Mode Setup")]
-    [Tooltip("Check this TRUE ONLY in your Tutorial Scene. It freezes the timer completely!")]
-    [SerializeField] private bool isTutorialMode = false;
+    [Tooltip("Check this TRUE ONLY in your Intro/Tutorial Scene. It spawns all aliens at once!")]
+    [SerializeField] private bool isIntroScene = false;
 
     [Header("Alien Management")]
     [Tooltip("Drag all the aliens placed in your scene into this list!")]
     [SerializeField] private List<GameObject> alienPool = new List<GameObject>();
     [SerializeField] private float delayBetweenAliens = 1.0f;
 
-    [Header("Timer Settings")]
-    [Tooltip("How long the player has to beat the level in the main game scene.")]
-    [SerializeField] public float timeRemaining = 120.0f; 
-    
     [Header("Level Pad Setup")]
     [SerializeField] private GameObject levelPad;
     [SerializeField] private string padTag = "LevelPad";
     [SerializeField] private float delayBeforePadAppears = 1.5f;
-
-    [Header("End Game UI Setup")]
-    [Tooltip("Drag the HUD Canvas that is attached to your VR Main Camera here.")]
-    [SerializeField] private GameObject endGameCanvas; 
-    [Tooltip("Drag the TextMeshPro text component inside that Canvas here.")]
-    [SerializeField] private TextMeshProUGUI statusText; 
 
     private GameObject currentActiveAlien;
     private int currentAlienIndex = 0;
     private bool isWaitingToSpawn = false;
     private bool isGameOver = false;
 
-    // Pad references
+    // Track how many aliens are left alive in the intro scene
+    private int tutorialAliensAlive = 0;
+
+    // Pad structural tracking references
     private MeshRenderer padMeshRenderer;
     private Collider padCollider;
     private bool isLevelTransitioning = false;
@@ -52,6 +43,7 @@ public class SpawnLevelManager : MonoBehaviour
 
     void Start()
     {
+        // 1. Hide the Level Pad at the absolute start of the match
         if (levelPad != null)
         {
             padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
@@ -60,31 +52,32 @@ public class SpawnLevelManager : MonoBehaviour
             if (padCollider != null) padCollider.enabled = false;
         }
 
-        if (endGameCanvas != null) endGameCanvas.SetActive(false);
-
         StartCoroutine(SafeInitializeGame());
-    }
-
-    void Update()
-    {
-        if (isGameOver) return;
-        if (isTutorialMode) return; 
-
-        if (timeRemaining > 0)
-        {
-            timeRemaining -= Time.deltaTime;
-        }
-        else
-        {
-            timeRemaining = 0;
-            EndGame(false); 
-        }
     }
 
     private IEnumerator SafeInitializeGame()
     {
+        // Wait exactly one frame for all VR systems to load securely
         yield return null; 
 
+        // INTRO SCENE LOGIC: Force everything on immediately!
+        if (isIntroScene)
+        {
+            tutorialAliensAlive = 0;
+            foreach (GameObject alien in alienPool)
+            {
+                if (alien != null)
+                {
+                    alien.SetActive(true);
+                    tutorialAliensAlive++;
+                }
+            }
+            Debug.Log($"Intro Scene Active: All {tutorialAliensAlive} aliens have spawned at once!");
+            yield break; // Stops the rest of this function from running
+        }
+
+        // --- STANDARD GAME LOGIC (Only runs when isIntroScene is FALSE) ---
+        // Truly randomize the alien order in the list
         for (int i = 0; i < alienPool.Count; i++)
         {
             GameObject temp = alienPool[i];
@@ -93,17 +86,37 @@ public class SpawnLevelManager : MonoBehaviour
             alienPool[randomIndex] = temp;
         }
 
+        // Turn OFF every single alien completely so they cannot move or glitch in the dark
         foreach (GameObject alien in alienPool)
         {
             if (alien != null) alien.SetActive(false);
         }
 
+        // Reveal only the very first alien to start the wave
         RevealNextAlien();
     }
 
+    // Called automatically by your AlienHealth script when a laser strikes an alien
     public void ReportAlienDeath(GameObject destroyedAlien)
     {
-        if (isGameOver || isWaitingToSpawn) return;
+        if (isGameOver) return;
+
+        // INTRO SCENE DEATH TRACKING
+        if (isIntroScene)
+        {
+            tutorialAliensAlive--;
+            Debug.Log($"Intro alien destroyed. {tutorialAliensAlive} remaining.");
+            
+            if (tutorialAliensAlive <= 0)
+            {
+                isGameOver = true;
+                StartCoroutine(RevealLevelPad());
+            }
+            return; // Exit out early since we don't need regular spawning logic
+        }
+
+        // --- STANDARD LEVEL DEATH TRACKING ---
+        if (isWaitingToSpawn) return;
 
         if (destroyedAlien == currentActiveAlien || currentActiveAlien == null)
         {
@@ -115,55 +128,14 @@ public class SpawnLevelManager : MonoBehaviour
             }
             else
             {
-                EndGame(true); 
-            }
-        }
-    }
-
-    private void EndGame(bool playerWon)
-    {
-        isGameOver = true;
-
-        if (!playerWon && currentActiveAlien != null)
-        {
-            Destroy(currentActiveAlien);
-        }
-
-        if (endGameCanvas != null && statusText != null)
-        {
-            endGameCanvas.SetActive(true);
-
-            if (playerWon)
-            {
-                statusText.text = "YOU WIN!";
-                statusText.color = Color.green;
+                isGameOver = true;
                 StartCoroutine(RevealLevelPad());
             }
-            else
-            {
-                statusText.text = "GAME OVER!\nYOU LOSE";
-                statusText.color = Color.red;
-            }
         }
-    }
-
-    private IEnumerator RevealLevelPad()
-    {
-        padHasAppeared = true;
-        yield return new WaitForSeconds(delayBeforePadAppears);
-        
-        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
-        if (padCollider != null) padCollider.enabled = true;
-        Debug.Log("Victory! The Level Pad is now visible and active!");
     }
 
     private void RevealNextAlien()
     {
-        if (currentActiveAlien != null)
-        {
-            currentActiveAlien.SetActive(false);
-        }
-
         if (currentAlienIndex < alienPool.Count)
         {
             currentActiveAlien = alienPool[currentAlienIndex];
@@ -184,6 +156,18 @@ public class SpawnLevelManager : MonoBehaviour
         RevealNextAlien();
     }
 
+    // Delays and reveals the physical portal pad
+    private IEnumerator RevealLevelPad()
+    {
+        padHasAppeared = true;
+        yield return new WaitForSeconds(delayBeforePadAppears);
+        
+        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
+        if (padCollider != null) padCollider.enabled = true;
+        Debug.Log("Victory! The Level Pad is now visible and active!");
+    }
+
+    // Detects when the VR player steps onto the teleport pad
     private void OnTriggerEnter(Collider other)
     {
         if (padHasAppeared && !isLevelTransitioning && other.CompareTag(padTag))
@@ -192,6 +176,7 @@ public class SpawnLevelManager : MonoBehaviour
         }
     }
 
+    // Transitions to the next scene in Build Settings
     private IEnumerator LoadNextLevel()
     {
         isLevelTransitioning = true;
