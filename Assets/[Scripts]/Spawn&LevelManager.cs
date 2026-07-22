@@ -41,7 +41,7 @@ public class GameAndLevelManager : MonoBehaviour
     private MeshRenderer padMeshRenderer;
     private Collider padCollider;
     private bool isLevelTransitioning = false;
-    private bool padHasAppeared = false;
+    private bool padHasAppeared = false; 
 
     void Awake()
     {
@@ -83,7 +83,6 @@ public class GameAndLevelManager : MonoBehaviour
 
     private IEnumerator SafeInitializeGame()
     {
-        // Wait exactly one frame for all VR systems to load securely
         yield return null; 
 
         // Truly randomize the alien order in the list
@@ -95,7 +94,7 @@ public class GameAndLevelManager : MonoBehaviour
             alienPool[randomIndex] = temp;
         }
 
-        // FIX: Turn OFF every single alien completely so they cannot glitch out or move in the dark
+        // Turn OFF every single alien completely so they cannot glitch out or move in the dark
         foreach (GameObject alien in alienPool)
         {
             if (alien != null) alien.SetActive(false);
@@ -151,14 +150,29 @@ public class GameAndLevelManager : MonoBehaviour
         }
     }
 
+    // Explicitly placed here so EndGame can find it perfectly
+    private IEnumerator RevealLevelPad()
+    {
+        padHasAppeared = true;
+        yield return new WaitForSeconds(delayBeforePadAppears);
+        
+        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
+        if (padCollider != null) padCollider.enabled = true;
+        Debug.Log("Victory! The Level Pad is now visible and active!");
+    }
+
     private void RevealNextAlien()
     {
+        if (currentActiveAlien != null)
+        {
+            currentActiveAlien.SetActive(false);
+        }
+
         if (currentAlienIndex < alienPool.Count)
         {
             currentActiveAlien = alienPool[currentAlienIndex];
             if (currentActiveAlien != null)
             {
-                // FIX: Turn the game object fully ON so it appears and its scripts start running safely
                 currentActiveAlien.SetActive(true);
                 Debug.Log($"Alien {currentAlienIndex + 1} of {alienPool.Count} is active!");
             }
