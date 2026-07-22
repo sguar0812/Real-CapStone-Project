@@ -4,9 +4,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement; 
 using TMPro; 
 
-public class GameAndLevelManager : MonoBehaviour
+// The name here matches your new file name exactly with NO special characters
+public class SpawnLevelManager : MonoBehaviour
 {
-    public static GameAndLevelManager Instance;
+    public static SpawnLevelManager Instance;
 
     [Header("Scene Mode Setup")]
     [Tooltip("Check this TRUE ONLY in your Tutorial Scene. It freezes the timer completely!")]
@@ -51,7 +52,6 @@ public class GameAndLevelManager : MonoBehaviour
 
     void Start()
     {
-        // Hide the Level Pad at the absolute start
         if (levelPad != null)
         {
             padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
@@ -77,7 +77,7 @@ public class GameAndLevelManager : MonoBehaviour
         else
         {
             timeRemaining = 0;
-            EndGame(false); // Player loses
+            EndGame(false); 
         }
     }
 
@@ -85,7 +85,6 @@ public class GameAndLevelManager : MonoBehaviour
     {
         yield return null; 
 
-        // Truly randomize the alien order in the list
         for (int i = 0; i < alienPool.Count; i++)
         {
             GameObject temp = alienPool[i];
@@ -94,13 +93,11 @@ public class GameAndLevelManager : MonoBehaviour
             alienPool[randomIndex] = temp;
         }
 
-        // Turn OFF every single alien completely so they cannot glitch out or move in the dark
         foreach (GameObject alien in alienPool)
         {
             if (alien != null) alien.SetActive(false);
         }
 
-        // Turn on and reveal the very first alien to start the game
         RevealNextAlien();
     }
 
@@ -118,7 +115,7 @@ public class GameAndLevelManager : MonoBehaviour
             }
             else
             {
-                EndGame(true); // Player wins!
+                EndGame(true); 
             }
         }
     }
@@ -150,7 +147,6 @@ public class GameAndLevelManager : MonoBehaviour
         }
     }
 
-    // Explicitly placed here so EndGame can find it perfectly
     private IEnumerator RevealLevelPad()
     {
         padHasAppeared = true;

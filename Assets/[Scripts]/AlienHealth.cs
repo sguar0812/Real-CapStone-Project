@@ -6,9 +6,9 @@ public class AlienHealth : MonoBehaviour
     public void KillAlien()
     {
         // 1. Report directly to the manager that THIS exact parent object is dead
-        if (GameAndLevelManager.Instance != null)
+        if (SpawnLevelManager.Instance != null)
         {
-            GameAndLevelManager.Instance.ReportAlienDeath(this.gameObject);
+            SpawnLevelManager.Instance.ReportAlienDeath(this.gameObject);
         }
         else
         {
