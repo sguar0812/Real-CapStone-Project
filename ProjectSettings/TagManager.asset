@@ -10,6 +10,7 @@ TagManager:
   - DartSpawn
   - Alien
   - Barrier
+  - LevelPad
   layers:
   - Default
   - TransparentFX

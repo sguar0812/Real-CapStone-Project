@@ -2,34 +2,39 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class LevelManager : MonoBehaviour
+public class PlayerLevelManager : MonoBehaviour
 {
     [Header("Level Settings")]
     [SerializeField] private string alienTag = "Alien";
     [SerializeField] private float delayBeforePadAppears = 1.5f;
 
     [Header("Level Pad Setup")]
-    [SerializeField] private GameObject levelPad; // Drag your pad GameObject here
-    [SerializeField] private string playerTag = "Player"; // Ensure your VR Rig has this tag
+    [SerializeField] private GameObject levelPad; // Drag your pad object here!
+    [SerializeField] private string padTag = "LevelPad"; // Give your pad this tag
 
-    private bool isPadTriggered = false;
+    private MeshRenderer padMeshRenderer;
+    private Collider padCollider;
+    private bool isLevelTransitioning = false;
     private bool padHasAppeared = false;
 
     void Start()
     {
-        // Force the pad to be invisible/inactive at the start of the level
+        // Safely find the pad's visual and physical components
         if (levelPad != null)
         {
-            levelPad.SetActive(false);
+            padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
+            padCollider = levelPad.GetComponent<Collider>();
+
+            // Hide it immediately at the start of the level
+            if (padMeshRenderer != null) padMeshRenderer.enabled = false;
+            if (padCollider != null) padCollider.enabled = false;
         }
     }
 
     void Update()
     {
-        // If the pad is already visible, we don't need to check for aliens anymore
         if (padHasAppeared) return;
 
-        // Check if any aliens are left
         GameObject[] remainingAliens = GameObject.FindGameObjectsWithTag(alienTag);
 
         if (remainingAliens.Length == 0)
@@ -41,22 +46,19 @@ public class LevelManager : MonoBehaviour
     private IEnumerator RevealLevelPad()
     {
         padHasAppeared = true;
-
-        // Pause briefly after the final kill before showing the pad
         yield return new WaitForSeconds(delayBeforePadAppears);
 
-        if (levelPad != null)
-        {
-            levelPad.SetActive(true);
-            // Optional: Play a sound effect or spawn particles here to alert the player
-        }
+        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
+        if (padCollider != null) padCollider.enabled = true;
+        
+        Debug.Log("The Player script has successfully revealed the Level Pad!");
     }
 
-    // This detects when the VR player steps onto the pad's trigger area
+    // Now running on the player, this detects when YOU step on the pad
     private void OnTriggerEnter(Collider other)
     {
-        // Only trigger if the pad is visible and it was the player who walked onto it
-        if (padHasAppeared && !isPadTriggered && other.CompareTag(playerTag))
+        // If the pad is active, we haven't loaded yet, and we just stepped on the LevelPad
+        if (padHasAppeared && !isLevelTransitioning && other.CompareTag(padTag))
         {
             StartCoroutine(LoadNextLevel());
         }
@@ -64,9 +66,7 @@ public class LevelManager : MonoBehaviour
 
     private IEnumerator LoadNextLevel()
     {
-        isPadTriggered = true;
-
-        // Optional: Trigger a VR fade-to-black screen effect here
+        isLevelTransitioning = true;
         yield return new WaitForSeconds(0.5f); 
 
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
