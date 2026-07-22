@@ -11971,6 +11971,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4206109053866980269, guid: 82d538ac290ee5d4cbee1e021a136553,
+        type: 3}
+      propertyPath: m_EnableFly
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4562381507625084904, guid: 82d538ac290ee5d4cbee1e021a136553,
         type: 3}
       propertyPath: desktopMove
