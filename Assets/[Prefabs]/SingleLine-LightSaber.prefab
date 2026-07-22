@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5251161403207688258}
   - component: {fileID: 1317246946656985570}
   - component: {fileID: 5331935711960621951}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SingleLine-LightSaber
   m_TagString: Dart
   m_Icon: {fileID: 0}
