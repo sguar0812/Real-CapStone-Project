@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro; // Required for TextMeshPro
+using UnityEngine.SceneManagement; // Required for loading scenes via the pad
+using TMPro; 
 
 public class GameAndLevelManager : MonoBehaviour
 {
-    // Global instance lets your laser script talk directly to this script
     public static GameAndLevelManager Instance;
 
     [Header("Scene Mode Setup")]
@@ -19,8 +19,13 @@ public class GameAndLevelManager : MonoBehaviour
 
     [Header("Timer Settings")]
     [Tooltip("How long the player has to beat the level in the main game scene.")]
-    [SerializeField] public float timeRemaining = 120.0f; // PUBLIC so your friend's timer script can read it!
+    [SerializeField] public float timeRemaining = 120.0f; 
     
+    [Header("Level Pad Setup")]
+    [SerializeField] private GameObject levelPad;
+    [SerializeField] private string padTag = "LevelPad";
+    [SerializeField] private float delayBeforePadAppears = 1.5f;
+
     [Header("End Game UI Setup")]
     [Tooltip("Drag the HUD Canvas that is attached to your VR Main Camera here.")]
     [SerializeField] private GameObject endGameCanvas; 
@@ -32,16 +37,29 @@ public class GameAndLevelManager : MonoBehaviour
     private bool isWaitingToSpawn = false;
     private bool isGameOver = false;
 
+    // Pad references
+    private MeshRenderer padMeshRenderer;
+    private Collider padCollider;
+    private bool isLevelTransitioning = false;
+    private bool padHasAppeared = false;
+
     void Awake()
     {
-        // Set up the static reference so the Laser can find this manager instantly
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
 
     void Start()
     {
-        // Force the game over text canvas to be invisible at the start of the match
+        // RESTORED: Hide the Level Pad at the absolute start
+        if (levelPad != null)
+        {
+            padMeshRenderer = levelPad.GetComponent<MeshRenderer>();
+            padCollider = levelPad.GetComponent<Collider>();
+            if (padMeshRenderer != null) padMeshRenderer.enabled = false;
+            if (padCollider != null) padCollider.enabled = false;
+        }
+
         if (endGameCanvas != null) endGameCanvas.SetActive(false);
 
         StartCoroutine(SafeInitializeGame());
@@ -50,11 +68,8 @@ public class GameAndLevelManager : MonoBehaviour
     void Update()
     {
         if (isGameOver) return;
-        
-        // FIX: If this is the tutorial scene, skip the countdown entirely so the timer never runs out!
         if (isTutorialMode) return; 
 
-        // Countdown timer tick for the main gameplay scene
         if (timeRemaining > 0)
         {
             timeRemaining -= Time.deltaTime;
@@ -62,16 +77,14 @@ public class GameAndLevelManager : MonoBehaviour
         else
         {
             timeRemaining = 0;
-            EndGame(false); // Timer hit zero: PLAYER LOSES
+            EndGame(false); // Player loses
         }
     }
 
     private IEnumerator SafeInitializeGame()
     {
-        // Wait exactly one frame for all VR systems and alien components to fully awaken
         yield return null; 
 
-        // Truly randomize the alien order
         for (int i = 0; i < alienPool.Count; i++)
         {
             GameObject temp = alienPool[i];
@@ -80,17 +93,14 @@ public class GameAndLevelManager : MonoBehaviour
             alienPool[randomIndex] = temp;
         }
 
-        // Hide ALL aliens safely now that initialization is stable
         foreach (GameObject alien in alienPool)
         {
             if (alien != null) SetAlienVisibility(alien, false);
         }
 
-        // Reveal the very first alien to start the game
         RevealNextAlien();
     }
 
-    // Called automatically by your AlienHealth script when it takes a laser hit
     public void ReportAlienDeath(GameObject destroyedAlien)
     {
         if (isGameOver || isWaitingToSpawn) return;
@@ -105,7 +115,7 @@ public class GameAndLevelManager : MonoBehaviour
             }
             else
             {
-                EndGame(true); // All aliens dead: PLAYER WINS!
+                EndGame(true); // Player wins!
             }
         }
     }
@@ -114,13 +124,11 @@ public class GameAndLevelManager : MonoBehaviour
     {
         isGameOver = true;
 
-        // Clean up remaining current alien visual if the player lost by running out of time
         if (!playerWon && currentActiveAlien != null)
         {
             Destroy(currentActiveAlien);
         }
 
-        // Make the hidden VR head-HUD canvas appear instantly
         if (endGameCanvas != null && statusText != null)
         {
             endGameCanvas.SetActive(true);
@@ -129,14 +137,47 @@ public class GameAndLevelManager : MonoBehaviour
             {
                 statusText.text = "YOU WIN!";
                 statusText.color = Color.green;
-                Debug.Log("Game ended: Player won!");
+                
+                // RESTORED: Trigger the teleport pad to appear since they won!
+                StartCoroutine(RevealLevelPad());
             }
             else
             {
                 statusText.text = "GAME OVER!\nYOU LOSE";
                 statusText.color = Color.red;
-                Debug.Log("Game ended: Player ran out of time!");
             }
+        }
+    }
+
+    // RESTORED: Delays and reveals the physical portal pad
+    private IEnumerator RevealLevelPad()
+    {
+        padHasAppeared = true;
+        yield return new WaitForSeconds(delayBeforePadAppears);
+        
+        if (padMeshRenderer != null) padMeshRenderer.enabled = true;
+        if (padCollider != null) padCollider.enabled = true;
+        Debug.Log("Victory! The Level Pad is now visible and active!");
+    }
+
+    // RESTORED: Detects when the VR player steps onto the teleport pad
+    private void OnTriggerEnter(Collider other)
+    {
+        if (padHasAppeared && !isLevelTransitioning && other.CompareTag(padTag))
+        {
+            StartCoroutine(LoadNextLevel());
+        }
+    }
+
+    // RESTORED: Transitions to the next build scene
+    private IEnumerator LoadNextLevel()
+    {
+        isLevelTransitioning = true;
+        yield return new WaitForSeconds(0.5f);
+        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextSceneIndex);
         }
     }
 
@@ -148,7 +189,6 @@ public class GameAndLevelManager : MonoBehaviour
             if (currentActiveAlien != null)
             {
                 SetAlienVisibility(currentActiveAlien, true);
-                Debug.Log($"Alien {currentAlienIndex + 1} of {alienPool.Count} has appeared!");
             }
         }
     }
@@ -156,15 +196,12 @@ public class GameAndLevelManager : MonoBehaviour
     private IEnumerator WaitAndSpawnNext()
     {
         isWaitingToSpawn = true;
-        currentActiveAlien = null; // Cleanly clear out the reference 
-        
+        currentActiveAlien = null; 
         yield return new WaitForSeconds(delayBetweenAliens);
-        
         isWaitingToSpawn = false;
         RevealNextAlien();
     }
 
-    // Helper function that safely toggles an alien's visibility on/off
     private void SetAlienVisibility(GameObject alien, bool visible)
     {
         Renderer r = alien.GetComponent<Renderer>();
