@@ -182,6 +182,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2147862716265611385, guid: 852b529c2537c444ca3e6e9d3eeee76e,
         type: 3}
+      propertyPath: endSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 8a2ba4b356b6d494096d171b70359390, type: 3}
+    - target: {fileID: 2147862716265611385, guid: 852b529c2537c444ca3e6e9d3eeee76e,
+        type: 3}
       propertyPath: countdownSeconds
       value: 75
       objectReference: {fileID: 0}
