@@ -185,6 +185,11 @@ PrefabInstance:
       propertyPath: countdownSeconds
       value: 75
       objectReference: {fileID: 0}
+    - target: {fileID: 2147862716265611385, guid: 852b529c2537c444ca3e6e9d3eeee76e,
+        type: 3}
+      propertyPath: createWorldSpaceCanvas
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8262825159962497483, guid: 852b529c2537c444ca3e6e9d3eeee76e,
         type: 3}
       propertyPath: m_Name
